@@ -1,0 +1,13 @@
+name: WordsPredictionApp
+title: WordsPredictionApp
+username:
+account: ooluwole
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 5946284
+bundleId: 5733226
+url: https://ooluwole.shinyapps.io/WordsPredictionApp/
+when: 1648423792.70538
+lastSyncTime: 1648423792.70538
+asMultiple: FALSE
+asStatic: FALSE

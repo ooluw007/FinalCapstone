@@ -1,0 +1,73 @@
+---
+title: "Peer-graded Assignment: Final Project Submission"
+author: "Olusanya Oluwole"
+date: "3/27/2022"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Next Word Predction App
+
+Most people today use smartphones and/or other forms of computer devices. 
+Smartphone message apps in particular are widely used to send messages. 
+
+- For these apps to be more effective, next word auto-completion functions based
+on Natural language processing ([NLP](https://en.wikipedia.org/wiki/Natural_language_processing)) 
+are very essential. NLP involved, basically, training computer to understand 
+human language and use the information gained when required.
+- When users entered a word or phrase, the next possible word showed, with most 
+likely word first, then other suggested possible words. 
+
+We created an app that will serve this purpose. With this application, you will 
+be able to predict next word after entering a word or phrase with greater
+precision.
+
+## Data Source and Handling
+
+**Data Source**
+
+- All data used are from English texts only.
+- We use twitter, news and blogs text data provided by Coursera and 
+SwiftKey.
+
+**Data Cleaning**
+
+- We take samples of twitter, news and blogs data and merged them to a single 
+data.
+- The combined sample data was reprocessed by removing punctuation, links, 
+white spaces, numbers and any forms of special characters and then, all  
+remaining characters were converted to lowercase.
+- Thorough exploratory analysis was done on the cleaned sample to facilitate 
+understanding of the data and ensure accurate prediction.
+
+## How the App Works
+- The app was build based on $N-grams$ models. Our algorithm used back-off model 
+which used most reliable information based on a given history to generate
+more accurate prediction.
+- It checks for the highest order $N-gram$; $n = 4$ in this case.
+- If a word is not found in the highest order of the N-gram, it check the next
+lower order and repeat till all $N-grams$ are check for most likely next word.
+- Once found, the word is output.
+
+**More Work Needed**
+
+- This is just a simple app for basic word prediction.
+- We can further increase prediction accuracy and numbers of words that can be
+predicted by increasing the number of $N-grams$ and including data from other 
+sources.
+
+
+## App User's Guide
+
+- The app can be accessed [here]().
+- Enter a word or a phrase into the box provided on the left panel of the app.
+- Once you entered a word or phrase, click on the blue button below the box.
+- The next most likely word will appear in the box on the right panel.
+- You can try as many word as you like.
+
+**More Information on this Project**
+
+[GitHub](https://github.com/ooluw007/Capstone).
