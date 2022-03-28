@@ -1,0 +1,224 @@
+---
+title: "Test"
+author: "Olusanya Oluwole"
+date: "10/29/2021"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+# Introduction
+On daily basis, we produced and encountered huge text data in spoken or written 
+forms and different languages. However, the only language computer understand 
+is numbers. So, to be efficient, we need to train computers to understand spoken 
+and written words. This can be achieved through Natural language processing ([NLP](https://www.ibm.com/cloud/learn/natural-language-processing)). NLP gives
+computers ability to understand written text and spoken words in much the same
+way human beings can. It enables computers to process human language the form of
+text or voice data and to ‘understand’ its full meaning, complete with the 
+speaker or writer’s intent and sentiment.
+
+# Aims
+
+1. To understand the basic relationships observed in the given 
+data in order to interpret it more efficiently. 
+2. To explore each data file, `en_us.blog`, `en_us.new` and `en_us.twitter`,
+for *file sizes, number of characters, words and lines*.
+3. To take samples of each file and combine them for further analysis
+4. To examing word distribution in each files using table, histogram and word cloud. 
+5. To build $N-grams$ of words to show relationship between words in the sample
+dataset
+6. To summarize word distribution and relationship in $N-gram$ with histograms
+and wordclouds.
+7. To build backoff predictive model for next word prediction.
+
+# Useful Packages 
+```{r, echo=TRUE, warning=FALSE, message=FALSE}
+library(tidytext, warn.conflicts = FALSE)
+library(tidyverse, warn.conflicts = FALSE)
+library(stringi, warn.conflicts = FALSE)
+library(plotly, warn.conflicts = FALSE)
+library(qdapRegex, warn.conflicts = FALSE)
+library(wordcloud, warn.conflicts = FALSE)
+library(RColorBrewer, warn.conflicts = FALSE)
+library(syuzhet, warn.conflicts = FALSE)
+library(SentimentAnalysis, warn.conflicts = FALSE)
+library(sentimentr, warn.conflicts = FALSE)
+library(data.table, warn.conflicts = FALSE)
+```
+
+
+# Basic Data Exploration
+
+## Files Sizes 
+The sizes in megabites (MB) for `en_us.blog`, `en_us.new` and `en_us.twitter` 
+are shown below.
+```{r, echo=FALSE, warning=FALSE, message=FALSE, comment=NA}
+setwd("C:/Users/justi/Documents/Olu_Drive/Coursera/Data_Science_Statistics_and_Machine_Learning_Specialization/Capstone/en_US") # Set directory to the data
+blogFileSize <- file.info("en_US.blogs.txt")$size / 1024^2 # i.e., 1024/1024
+newsFileSize <- file.info("en_US.news.txt")$size  / 1024^2
+twitterFileSize <- file.info("en_US.twitter.txt")$size / 1024^2
+fileSize <- rbind(blogFileSize, newsFileSize, twitterFileSize)
+fileSize <- data.frame("Size" = fileSize)
+rownames(fileSize) <- c("Blogs File", "News File", "Twitter File")
+fileSize
+```
+
+
+
+## Data Import
+The three data file will be imported and sample taken for further analysis. We 
+will remove profane word by filtering our data with words in the profanity_txt
+file.
+
+1. en_us.blogs
+2. en_us.news
+3. en_us.twitter
+4. Profane words
+
+```{r, warning=FALSE, message=FALSE}
+setwd("C:/Users/justi/Documents/Olu_Drive/Coursera/Data_Science_Statistics_and_Machine_Learning_Specialization/Capstone/en_US")
+blogs_txt <- readLines("en_US.blogs.txt", warn = FALSE, encoding = "UTF-8", skipNul = TRUE)
+news_txt <- readLines("en_US.news.txt", warn = FALSE, encoding = "UTF-8", skipNul = TRUE)
+twitter_txt <- readLines("en_US.twitter.txt", warn = FALSE, encoding = "UTF-8", skipNul = TRUE)
+profanity_txt <- readLines("profanity.txt", warn = FALSE, encoding = "UTF-8", skipNul = TRUE)
+profanity_df <- tibble(profanity_txt)
+special_txt <- readLines("special.txt", warn = FALSE, encoding = "UTF-8", skipNul = TRUE)
+special_df <- tibble(special_txt)
+```
+
+## Brief Data Summary
+Here we determined basic features of the data `en_us.blog`, `en_us.new` and
+`en_us.twitter`. How many characters (words, spaces and others), words,  lines
+are in each data? Together with the files sizes, all are presented in the a 
+table below.
+
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE,comment=NA, align='center', table.align = 'center'}
+nCharsBlogs <- sum(nchar(blogs_txt))
+nCharsNews <- sum(nchar(news_txt))
+nCharsTwitter <- sum(nchar(twitter_txt))
+nWordsBlogs <- sum(stri_count_words(blogs_txt)) # requires library(stringi)
+nWordsNews <- sum(stri_count_words(news_txt))  
+nWordsTwitter <- sum(stri_count_words(twitter_txt)) 
+nLinesBlogs <- length(blogs_txt)
+nLinesNews <- length(news_txt)  
+nLinesTwitter <- length(twitter_txt) 
+
+# Dataframe for file sizes, number of characters, words and lines
+features_df <- tibble(
+  "File Type" = c("Blogs", "News", "Twitter"),
+  "File Size" = round(c(blogFileSize, newsFileSize, twitterFileSize), 2),
+  "Number of Characters" = c(nCharsBlogs, nCharsNews, nCharsTwitter),
+  "Number of Words" = c(nWordsBlogs, nWordsNews, nWordsTwitter),
+  "Number of Lines" = c(nLinesBlogs, nLinesNews, nLinesTwitter)
+  
+)
+features_df <- remove_rownames(features_df)
+knitr::kable(features_df, format = "markdown", caption = "Data Properties",
+             align = "c")
+
+```
+
+## Sampling
+I will sample 0.5% of each data set `blogs_txt`, `news_txt` and `twitter_txt` to
+form a single set, `sample1_txt`. See below the first 3 lines of the `sample-txt`
+```{r, echo=FALSE, warning=FALSE, message=FALSE, comment=NA}
+set.seed(12345)
+blogsSample_txt    <- sample(blogs_txt, length(blogs_txt) * 0.005, replace = FALSE)
+newsSample_txt     <- sample(news_txt, length(news_txt) * 0.005, replace = FALSE)
+twitterSample_txt  <- sample(twitter_txt, length(twitter_txt) * 0.005, replace = FALSE)
+sample1_txt = c(blogsSample_txt, newsSample_txt, twitterSample_txt)
+head(sample1_txt, 3)
+```
+
+# Data Preprocessing
+First, we need to clean the data and remove irrelevant characters so we can 
+concentrate on the important words from this file. 
+
+1. Remove lines with latin1 and ASCII characters.
+```{r, warning=FALSE, message=FALSE}
+latin1ASII_func <- grep("latin1ASII", iconv(sample1_txt, "latin1", "ASCII", sub="latin1ASII"))
+sample2_txt <- sample1_txt[-latin1ASII_func]
+```
+
+2. Remove special characters, digits and extra white space.
+
+See below the first 5 lines of the clean set.
+```{r, warning=FALSE, message=FALSE}
+sample3_txt <- gsub("&amp", " ", sample2_txt)
+sample3_txt <- gsub("RT :|@[a-z,A-Z]*: ", " ", sample3_txt) # remove tweets
+sample3_txt <- gsub("@\\w+", " ", sample3_txt)
+sample3_txt <- gsub("[[:digit:]]", " ", sample3_txt) # remove digits
+sample3_txt <- gsub(" #\\S*"," ", sample3_txt)  # remove hash tags 
+sample3_txt <- gsub(" ?(f|ht)tp(s?)://(.*)[.][a-z]+", " ", sample3_txt) # remove url
+sample3_txt <- gsub("[^[:alnum:][:space:]']", "", sample3_txt) # Remove punctuation except apostrophes
+sample3_txt <- rm_white(sample3_txt) # remove extra spaces using `qdapRegex` package
+```
+
+See below the first 5 lines of the clean set.
+```{r, echo=FALSE, warning=FALSE, message=FALSE, comment=NA}
+# Create sample set dataframe (sample_df)
+sample_df <- tibble(line = 1:length(sample3_txt), text = sample3_txt)
+head(sample_df$text, 3)
+```
+
+## Tokenization
+A token is a meaningful unit of text, most often a word, that we are 
+interested in using for further analysis, and tokenization is the process of
+splitting text into tokens.
+
+### Create one-token-per-document-per-row
+We need to both break the text into individual tokens and transform it to 
+a tidy data structure. This equivalent to a unigram $1-gram$. Also, we need to
+filter out the profane word from the text corpus.
+```{r, warning=FALSE, message=FALSE}
+unigram <- sample_df %>%
+  unnest_tokens(word, text) %>% 
+  filter(!word %in% profanity_df$profanity_txt) %>% 
+  filter(!word %in% special_df$special_txt) %>% # Remove profane words
+  drop_na()
+
+```
+
+## Find most frequent words
+The `count()` will will be useful here. This will help use to visualize the
+dataset. See below five most frequent word and their frequencies $n$.
+```{r, warning=FALSE, message=FALSE, comment=NA}
+unigram <- unigram %>% 
+  count(word, sort = TRUE) %>% 
+  mutate(word = reorder(word, n)) %>% 
+  filter(n > 10)
+head(unigram, 5)
+```
+
+# Data Visualization of the data
+
+## Create histogram
+We use `ggplot` to generate the histogram and line graph below. Word occurence
+is more than 800 times.
+```{r, echo=FALSE, warning=FALSE, message=FALSE, comment=NA}
+g1 <- unigram %>% 
+  filter(n > 800) %>% 
+  ggplot() +
+  aes(n, word, fill = class) +
+  geom_col(stat = "identity", color="darkgray", fill="chartreuse2") +
+  labs(x = "Frequency", y = "Word")
+ggplotly(g1)
+```
+
+## Line graph
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+gl1 <- unigram %>% 
+  filter(n > 800) %>% 
+  ggplot() +
+  aes(n, reorder(word, n)) +
+  geom_abline(color = "gray40", lty = 2) +
+  geom_jitter(alpha = 0.3, size = 2.5, width = 0.3, height = 0.3) +
+  geom_text(aes(label = word), check_overlap = TRUE, vjust = 1.5) +
+  scale_color_gradient(limits = c(0, 0.001), 
+                       low = "darkslategray4", high = "gray75") +
+  theme(legend.position="none") +
+  labs(x = "Frequency", y = "Word")
+ggplotly(gl1)
+```

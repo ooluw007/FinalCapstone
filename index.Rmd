@@ -62,7 +62,7 @@ sources.
 
 ## App User's Guide
 
-- The app can be accessed [here]().
+- The app can be accessed [here](https://ooluwole.shinyapps.io/WordsPredictionApp/).
 - Enter a word or a phrase into the box provided on the left panel of the app.
 - Once you entered a word or phrase, click on the blue button below the box.
 - The next most likely word will appear in the box on the right panel.
@@ -70,4 +70,4 @@ sources.
 
 **More Information on this Project**
 
-[GitHub](https://github.com/ooluw007/Capstone).
+[GitHub](https://github.com/ooluw007/FinalCapstone).

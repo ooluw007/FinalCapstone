@@ -5,9 +5,9 @@ account: ooluwole
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 5946284
-bundleId: 5733226
+bundleId: 5733510
 url: https://ooluwole.shinyapps.io/WordsPredictionApp/
-when: 1648423792.70538
-lastSyncTime: 1648423792.70538
+when: 1648432190.09222
+lastSyncTime: 1648432190.09222
 asMultiple: FALSE
 asStatic: FALSE
